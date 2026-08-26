@@ -1,20 +1,53 @@
 ## Overview
 
-This repository contains two servers:
+This server initially contains a single API, `greetings`. Each request to this API stores a new
+`Greet` object in the database and returns the ID of that object.
 
-- `bridger-agent`: A NextJS web server, complete with database and backend
-- `langgraph-server`: A Python server running a Langgraph API
+## Installation
 
-  There are instructions to run each of these in their respective directories
+`npm install`
 
-At the moment, there is a single end-to-end "greeting" functionality. This allows the user to
-press a button, get an autoincrementing ID, and get a custom LLM-generated greeting for that ID.
+## Run Migrations
 
-![Screenshot 2024-11-15 at 10 11 11 AM](https://github.com/user-attachments/assets/38460d7d-1358-4475-98fb-64f48bbff40e)
+`npm run prisma:migrate:dev`
 
-How it works
+## Running The Server
 
-- Visit the web server at `localhost:3000` and click the `Press to Greet` button
-- This makes a GraphQL request to the backend web server
-- The web server stores a `Greet` object in the database, and passes the ID of that object to the Python agent
-- The Python agent calls an Anthropic model and asks it to generate a greeting, which is passed back up the stack to the user
+`npm run dev`
+
+Visit `http://localhost:3000` in the browser
+
+## Frontend
+
+This project uses the NextJS app router. For simplicity, the root page, `src/app/page.tsx` is a child
+component, using `"use client"`
+
+## API
+
+This project uses GraphQL Yoga, a simple GQL server. You can view an interative UI at:
+
+`http://localhost:3000/api/graphql`
+
+A sample query that works is:
+
+```
+query Hello {
+  greetings
+}
+```
+
+The GraphQL client used is Apollo Client.
+The `src/components/GreetButton` component has an example of calling the `greetings` query
+and handling the results.
+
+## Database
+
+This project uses Prisma as the ORM, with sqlite as the backend.
+
+The schema file is located at `prisma/schema.prisma`
+
+Common commands
+
+- View a UI over the database: `npm run prisma:studio`
+- Run migrations: `npm run prisma:migrate:dev`
+- Format the schema file: `npm run prisma:format`
