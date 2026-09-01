@@ -10,3 +10,116 @@ datasource db {
 model Greet {
   id Int @id @default(autoincrement())
 }
+
+model Business {
+  businessId   String @id @map("business_id")
+  businessName String @map("business_name")
+
+  vendors                       Vendor[]
+  categories                    Category[]
+  transactionsToBeReviewed      TransactionToBeReviewed[]
+  reviewedResultTransactions    ReviewedResultTransaction[]
+  needsClientReviewTransactions NeedsClientReviewTransaction[]
+
+  @@map("business")
+}
+
+/// Vendor ids are scoped to a business: the same vendor_id may exist under
+/// two businesses, so the primary key is (business_id, vendor_id).
+model Vendor {
+  businessId String @map("business_id")
+  vendorId   String @map("vendor_id")
+  vendorName String @map("vendor_name")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+
+  transactionsToBeReviewed      TransactionToBeReviewed[]
+  reviewedResultTransactions    ReviewedResultTransaction[]
+  needsClientReviewTransactions NeedsClientReviewTransaction[]
+
+  @@id([businessId, vendorId])
+  @@map("vendor")
+}
+
+/// Category ids are scoped to a business: the same category_id may exist under
+/// two businesses, so the primary key is (business_id, category_id).
+model Category {
+  businessId   String @map("business_id")
+  categoryId   String @map("category_id")
+  categoryName String @map("category_name")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+
+  @@id([businessId, categoryId])
+  @@map("categories")
+}
+
+/// A transaction awaiting review. `category_split` is a JSON-encoded array of
+/// {category_id, amount}; its shape is enforced by `parseCategorySplit` in
+/// `src/server/modules/transactions/categorySplit.ts`, not by the database.
+/// `vendor_name` is a snapshot of the vendor's name at the time the row was
+/// written; the canonical name lives on `vendor`.
+model TransactionToBeReviewed {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  categorySplit       String   @map("category_split")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+  needsClientReview   Boolean  @map("needs_client_review")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+  vendor   Vendor?  @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("transaction_to_be_reviewed")
+}
+
+/// A transaction whose review is complete. `category_split` has the same
+/// JSON shape as on `transaction_to_be_reviewed`.
+model ReviewedResultTransaction {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  categorySplit       String   @map("category_split")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+
+  business Business @relation(fields: [businessId], references: [businessId])
+  vendor   Vendor?  @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("reviewed_result_transactions")
+}
+
+/// A transaction the client must review. `category_split` has the same JSON
+/// shape as on `transaction_to_be_reviewed`.
+model NeedsClientReviewTransaction {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  categorySplit       String   @map("category_split")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+
+  business Business @relation(fields: [businessId], references: [businessId])
+  vendor   Vendor?  @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("needs_client_review_transactions")
+}
