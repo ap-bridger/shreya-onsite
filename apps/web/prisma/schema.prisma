@@ -57,7 +57,7 @@ model Category {
 /// A transaction awaiting review. `total_amount` is the amount of the original
 /// transaction as it came from the account. `category_split` is a JSON-encoded
 /// array of {category_id, amount} allocating that total; its shape is enforced
-/// by `parseCategorySplit` in `src/server/modules/transactions/categorySplit.ts`,
+/// by `parseCategorySplit` in `apps/web/src/server/modules/transactions/categorySplit.ts`,
 /// not by the database.
 ///
 /// A row with `paired_transaction_id` set is one side of a transfer between two
