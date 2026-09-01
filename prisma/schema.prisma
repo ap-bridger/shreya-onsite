@@ -10,3 +10,164 @@ datasource db {
 model Greet {
   id Int @id @default(autoincrement())
 }
+
+model Business {
+  businessId   String @id @map("business_id")
+  businessName String @map("business_name")
+
+  vendors                       Vendor[]
+  categories                    Category[]
+  transactionsToBeReviewed      TransactionToBeReviewed[]
+  reviewedResultTransactions    ReviewedResultTransaction[]
+  needsClientReviewTransactions NeedsClientReviewTransaction[]
+
+  @@map("business")
+}
+
+/// Vendor ids are scoped to a business: the same vendor_id may exist under
+/// two businesses, so the primary key is (business_id, vendor_id).
+model Vendor {
+  businessId String @map("business_id")
+  vendorId   String @map("vendor_id")
+  vendorName String @map("vendor_name")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+
+  transactionsToBeReviewed      TransactionToBeReviewed[]
+  reviewedResultTransactions    ReviewedResultTransaction[]
+  needsClientReviewTransactions NeedsClientReviewTransaction[]
+
+  @@id([businessId, vendorId])
+  @@map("vendor")
+}
+
+/// Category ids are scoped to a business: the same category_id may exist under
+/// two businesses, so the primary key is (business_id, category_id).
+model Category {
+  businessId   String @map("business_id")
+  categoryId   String @map("category_id")
+  categoryName String @map("category_name")
+
+  business Business @relation(fields: [businessId], references: [businessId])
+
+  transactionToBeReviewedSplits      TransactionToBeReviewedCategorySplit[]
+  reviewedResultTransactionSplits    ReviewedResultTransactionCategorySplit[]
+  needsClientReviewTransactionSplits NeedsClientReviewTransactionCategorySplit[]
+
+  @@id([businessId, categoryId])
+  @@map("categories")
+}
+
+/// A transaction awaiting review. `category_split` is stored as child rows in
+/// `transaction_to_be_reviewed_category_split`, one per {category_id, amount}.
+/// `vendor_name` is a snapshot of the vendor's name at the time the row was
+/// written; the canonical name lives on `vendor`.
+model TransactionToBeReviewed {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+  needsClientReview   Boolean  @map("needs_client_review")
+
+  business      Business                               @relation(fields: [businessId], references: [businessId])
+  vendor        Vendor?                                @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+  categorySplit TransactionToBeReviewedCategorySplit[]
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("transaction_to_be_reviewed")
+}
+
+model TransactionToBeReviewedCategorySplit {
+  id            Int     @id @default(autoincrement())
+  transactionId String  @map("transaction_id")
+  businessId    String  @map("business_id")
+  categoryId    String  @map("category_id")
+  amount        Decimal
+
+  transaction TransactionToBeReviewed @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  category    Category                @relation(fields: [businessId, categoryId], references: [businessId, categoryId])
+
+  @@index([transactionId])
+  @@index([businessId, categoryId])
+  @@map("transaction_to_be_reviewed_category_split")
+}
+
+/// A transaction whose review is complete. `category_split` is stored as child
+/// rows in `reviewed_result_transactions_category_split`.
+model ReviewedResultTransaction {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+
+  business      Business                                 @relation(fields: [businessId], references: [businessId])
+  vendor        Vendor?                                  @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+  categorySplit ReviewedResultTransactionCategorySplit[]
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("reviewed_result_transactions")
+}
+
+model ReviewedResultTransactionCategorySplit {
+  id            Int     @id @default(autoincrement())
+  transactionId String  @map("transaction_id")
+  businessId    String  @map("business_id")
+  categoryId    String  @map("category_id")
+  amount        Decimal
+
+  transaction ReviewedResultTransaction @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  category    Category                  @relation(fields: [businessId, categoryId], references: [businessId, categoryId])
+
+  @@index([transactionId])
+  @@index([businessId, categoryId])
+  @@map("reviewed_result_transactions_category_split")
+}
+
+/// A transaction the client must review. `category_split` is stored as child
+/// rows in `needs_client_review_transactions_category_split`.
+model NeedsClientReviewTransaction {
+  transactionId       String   @id @map("transaction_id")
+  accountId           String   @map("account_id")
+  accountName         String   @map("account_name")
+  businessId          String   @map("business_id")
+  date                DateTime
+  vendorId            String?  @map("vendor_id")
+  vendorName          String?  @map("vendor_name")
+  pairedTransactionId String?  @map("paired_transaction_id")
+  description         String
+
+  business      Business                                    @relation(fields: [businessId], references: [businessId])
+  vendor        Vendor?                                     @relation(fields: [businessId, vendorId], references: [businessId, vendorId], onDelete: Restrict, onUpdate: Restrict)
+  categorySplit NeedsClientReviewTransactionCategorySplit[]
+
+  @@index([businessId])
+  @@index([businessId, vendorId])
+  @@map("needs_client_review_transactions")
+}
+
+model NeedsClientReviewTransactionCategorySplit {
+  id            Int     @id @default(autoincrement())
+  transactionId String  @map("transaction_id")
+  businessId    String  @map("business_id")
+  categoryId    String  @map("category_id")
+  amount        Decimal
+
+  transaction NeedsClientReviewTransaction @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  category    Category                     @relation(fields: [businessId, categoryId], references: [businessId, categoryId])
+
+  @@index([transactionId])
+  @@index([businessId, categoryId])
+  @@map("needs_client_review_transactions_category_split")
+}
