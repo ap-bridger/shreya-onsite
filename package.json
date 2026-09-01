@@ -11,6 +11,10 @@
     "dev:api": "npm run build:contracts && npm run dev -w api",
     "dev:web": "npm run dev -w web",
     "build": "npm run build:contracts && npm run build -w api && npm run build -w web",
-    "lint": "npm run lint -w web --if-present"
+    "lint": "npm run lint -w web --if-present",
+    "prisma:migrate:dev": "npm run prisma:migrate:dev -w web",
+    "prisma:studio": "npm run prisma:studio -w web",
+    "prisma:format": "npm run prisma:format -w web",
+    "prisma:seed": "npm run prisma:seed -w web"
   }
 }
