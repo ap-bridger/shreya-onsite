@@ -3,14 +3,48 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light theme — from design tokens */
+  --accent-baseline: #a5683b;
+  --accent-baseline-rgb: 165 104 59;
+  --canvas: #fbf7f4;
+  --accent-default: #74492a;
+  --accent-default-rgb: 116 73 42;
+  --accent-subdued: rgb(116 73 42 / 81%);
+  --neutral-default: #2d1c10;
+  --neutral-default-rgb: 45 28 16;
+  --neutral-subdued: rgb(45 28 16 / 62%);
+  --surface: #ffffff;
+  --surface-rgb: 255 255 255;
+  --border: rgb(116 73 42 / 24%);
+  --row-approved: rgb(165 104 59 / 18%);
+  --row-dirty: rgb(165 104 59 / 28%);
+  --overlay: rgb(45 28 16 / 40%);
+
+  --background: var(--canvas);
+  --foreground: var(--neutral-default);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark theme — from design tokens */
+    --accent-baseline: #966d4f;
+    --accent-baseline-rgb: 150 109 79;
+    --canvas: #2d1c10;
+    --accent-default: #ba977d;
+    --accent-default-rgb: 186 151 125;
+    --accent-subdued: rgb(186 151 125 / 82%);
+    --neutral-default: #e8dcd4;
+    --neutral-default-rgb: 232 220 212;
+    --neutral-subdued: rgb(232 220 212 / 54%);
+    --surface: #3a2818;
+    --surface-rgb: 58 40 24;
+    --border: rgb(186 151 125 / 28%);
+    --row-approved: rgb(150 109 79 / 28%);
+    --row-dirty: rgb(186 151 125 / 22%);
+    --overlay: rgb(0 0 0 / 55%);
+
+    --background: var(--canvas);
+    --foreground: var(--neutral-default);
   }
 }
 
@@ -18,4 +52,37 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50;
+    background: var(--accent-default);
+    color: var(--canvas);
+  }
+
+  .btn-secondary {
+    @apply rounded border px-3 py-1.5 text-sm;
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--accent-default);
+  }
+
+  .field-input {
+    @apply w-full rounded border px-2 py-1.5 text-sm;
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--neutral-default);
+  }
+
+  .panel {
+    @apply rounded-lg border;
+    border-color: var(--border);
+    background: var(--surface);
+  }
+
+  .label-caps {
+    @apply text-xs font-semibold uppercase tracking-wide;
+    color: var(--accent-subdued);
+  }
 }
