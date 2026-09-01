@@ -11,6 +11,13 @@ This server initially contains a single API, `greetings`. Each request to this A
 
 `npm run prisma:migrate:dev`
 
+## Seed Dummy Data
+
+`npm run prisma:seed`
+
+Replaces all businesses, categories, vendors, and transactions with the fixed dataset described
+in `prisma/seed.ts`. Safe to rerun.
+
 ## Running The Server
 
 `npm run dev`
@@ -51,3 +58,4 @@ Common commands
 - View a UI over the database: `npm run prisma:studio`
 - Run migrations: `npm run prisma:migrate:dev`
 - Format the schema file: `npm run prisma:format`
+- Reset and seed dummy data: `npm run prisma:seed`
